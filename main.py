@@ -9,7 +9,7 @@ if not api_key:
 
 genai.configure(api_key=api_key)
 # 최신 Gemini 모델 지정
-model = genai.GenerativeModel('gemini-2.5-flash')
+model = genai.GenerativeModel('gemini-2.0-flash')
 
 def get_bmw_news():
     print("🚗 BMW 최신 뉴스를 수집하는 중...")
