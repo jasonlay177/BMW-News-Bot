@@ -24,9 +24,12 @@ jobs:
         run: |
           pip install feedparser google-generativeai
 
-      # 4. 파이썬 코드 실행 (아까 만든 main.py 실행 + API 키 전달)
+      # 4. 파이썬 코드 실행 (API 키와 이메일 정보를 함께 전달)
       - name: Run Python script
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          MY_EMAIL: ${{ secrets.MY_EMAIL }}
+          EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+          RECEIVER_EMAIL: ${{ secrets.RECEIVER_EMAIL }}
         run: |
           python main.py
