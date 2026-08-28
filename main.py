@@ -1,117 +1,123 @@
+import base64
+from datetime import datetime
 import os
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
 import feedparser
 import google.generativeai as genai
-from datetime import datetime
+import requests  # 워드프레스 REST API 통신용 라이브러리
 
-# 1. API 키 및 이메일 정보 설정 (GitHub Secret에서 안전하게 가져옵니다)
+# 1. API 키 및 설정 (GitHub Secret에서 안전하게 가져옵니다)
 api_key = os.environ.get("GEMINI_API_KEY")
-sender_email = os.environ.get("MY_EMAIL")
-email_password = os.environ.get("EMAIL_PASSWORD")
-receiver_email = os.environ.get("RECEIVER_EMAIL")
+
+# 이메일 관련 변수 (현재는 주석 처리되었지만 추후 필요시 사용)
+# sender_email = os.environ.get("MY_EMAIL")
+# email_password = os.environ.get("EMAIL_PASSWORD")
+# receiver_email = os.environ.get("RECEIVER_EMAIL")
+
+# 워드프레스 연동 정보 설정 (GitHub Secret에서 가져옴)
+WP_SITE_URL = os.environ.get("WP_SITE_URL")
+WP_USER = os.environ.get("WP_USER")
+WP_PASSWORD = os.environ.get("WP_PASSWORD")
 
 if not api_key:
-    raise ValueError("GEMINI_API_KEY가 설정되지 않았습니다!")
+  raise ValueError("GEMINI_API_KEY가 설정되지 않았습니다!")
 
 genai.configure(api_key=api_key)
-model = genai.GenerativeModel('gemini-3.5-flash') # 모델명을 안정적인 버전으로 수정했습니다
+model = genai.GenerativeModel("gemini-3.5-flash")  # 안정적인 모델 버전으로 설정
+
 
 def get_bmw_news():
-    print("🚗 BMW 최신 뉴스를 수집하는 중...")
-    rss_url = "https://news.google.com/rss/search?q=BMW&hl=ko&gl=KR&ceid=KR:ko"
-    feed = feedparser.parse(rss_url)
-    
-    news_list = []
-    for entry in feed.entries[:3]:
-        news_list.append(f"제목: {entry.title}\n링크: {entry.link}\n")
-    
-    return "\n".join(news_list)
+  print("🚗 BMW 최신 뉴스를 수집하는 중...")
+  rss_url = "https://news.google.com/rss/search?q=BMW&hl=ko&gl=KR&ceid=KR:ko"
+  feed = feedparser.parse(rss_url)
+
+  news_list = []
+  for entry in feed.entries[:3]:
+    news_list.append(f"제목: {entry.title}\n링크: {entry.link}\n")
+
+  return "\n".join(news_list)
+
 
 def summarize_news(news_text):
-    print("🤖 Gemini AI가 뉴스를 요약하는 중...")
-    prompt = f"""
+  print("🤖 Gemini AI가 뉴스를 요약하는 중...")
+  prompt = f"""
     다음은 최근 BMW 관련 뉴스 목록입니다. 
-    이 내용들을 바탕으로 주요 뉴스 5가지를 요약해서 경영진에 보고하는 형식으로 만들어주세요.
-    특수문자는 사용하지 말고 깔끔하게 번호만 붙여서. 각 뉴스당 5~6줄 정도 분량으로.
+    이 내용들을 바탕으로 주요 뉴스 5가지를 요약해서 워드프레스 블로그용으로 만들어주세요.
 
     [뉴스 원본]
     {news_text}
     """
-    response = model.generate_content(prompt)
-    return response.text
+  response = model.generate_content(prompt)
+  return response.text
 
-def save_to_html(summary_text):
-    print("🌐 블로그 HTML 파일 생성 중...")
-    today_date = datetime.now().strftime("%Y년 %m월 %d일")
-    
-    # 줄바꿈(엔터)을 HTML 줄바꿈(<br>)으로 변환
-    formatted_summary = summary_text.replace('\n', '<br>')
-    
-    html_content = f"""<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="utf-8">
-    <title>BMW News Bot - {today_date}</title>
-    <style>
-        body {{ font-family: 'Apple SD Gothic Neo', sans-serif; max-width: 800px; margin: 40px auto; padding: 20px; line-height: 1.6; color: #333; }}
-        h1 {{ color: #111; border-bottom: 2px solid #000; padding-bottom: 10px; }}
-        .date {{ color: #666; font-size: 0.9em; margin-bottom: 20px; }}
-        .content {{ background: #f9f9f9; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }}
-    </style>
-</head>
-<body>
-    <h1>🚗 BMW Daily News Bot</h1>
-    <div class="date">발행일: {today_date}</div>
-    <div class="content">
-        <p>{formatted_summary}</p>
-    </div>
-</body>
-</html>
-"""
-    # index.html 파일로 저장 (접속했을 때 바로 이 내용이 보임)
-    with open("index.html", "w", encoding="utf-8") as f:
-        f.write(html_content)
-    print("✅ index.html 파일 생성 완료!")
 
-def send_email(summary_text):
-    print("📧 이메일 발송 중...")
-    if not sender_email or not email_password or not receiver_email:
-        print("⚠️ 이메일 설정(Secret)이 누락되어 이메일 발송을 건너뜁니다.")
-        return
+# [주석 처리] 기존 GitHub Pages용 HTML 파일 생성 함수 (사용 안 함)
+# def save_to_html(summary_text):
+#     ...
 
-    msg = MIMEMultipart()
-    msg['Subject'] = '오늘 아침 BMW 뉴스 요약'
-    msg['From'] = sender_email
-    msg['To'] = receiver_email
-    
-    content = f"안녕하세요! 오늘 아침 BMW 뉴스 요약 봇입니다.\n\n{summary_text}"
-    msg.attach(MIMEText(content, 'plain', 'utf-8'))
-    
-    try:
-        server = smtplib.SMTP('smtp.gmail.com', 587)
-        server.starttls()
-        server.login(sender_email, email_password)
-        server.sendmail(sender_email, receiver_email, msg.as_string())
-        server.quit()
-        print("✅ 메일 발송 성공!")
-    except Exception as e:
-        print(f"❌ 메일 발송 실패: {e}")
+
+# [주석 처리] 기존 이메일 발송 함수 (사용 안 함)
+# def send_email(summary_text):
+#     ...
+
+
+# [신규 추가] 워드프레스 자동 포스팅 함수
+def post_to_wordpress(title, summary_text):
+  print("📝 워드프레스에 포스팅을 전송하는 중...")
+
+  if not WP_SITE_URL or not WP_USER or not WP_PASSWORD:
+    print("⚠️ 워드프레스 설정(Secret)이 누락되어 포스팅을 건너뜁니다.")
+    return
+
+  api_url = f"{WP_SITE_URL}/wp-json/wp/v2/posts"
+
+  # Basic Auth 인증 헤더 생성
+  credentials = f"{WP_USER}:{WP_PASSWORD}"
+  token = base64.b64encode(credentials.encode()).decode()
+  headers = {
+      "Authorization": f"Basic {token}",
+      "Content-Type": "application/json",
+  }
+
+  # 본문 줄바꿈을 HTML 태그(<br>)로 변환하여 가독성 높이기
+  formatted_content = summary_text.replace("\n", "<br>")
+
+  # 전송할 데이터 구조 (status를 'publish'로 하면 즉시 발행, 'draft'로 하면 임시글 저장)
+  data = {
+      "title": title,
+      "content": formatted_content,
+      "status": "publish",
+  }
+
+  try:
+    response = requests.post(api_url, headers=headers, json=data)
+    if response.status_code == 201:
+      print("✅ 성공적으로 워드프레스에 포스팅되었습니다!")
+    else:
+      print(f"❌ 워드프레스 포스팅 실패: {response.status_code}, {response.text}")
+  except Exception as e:
+    print(f"❌ 워드프레스 통신 중 오류 발생: {e}")
+
 
 if __name__ == "__main__":
-    news_data = get_bmw_news()
-    if not news_data:
-        print("수집된 뉴스가 없습니다.")
-    else:
-        summary = summarize_news(news_data)
-        print("\n" + "="*40)
-        print("✨ [BMW 뉴스 요약 결과]")
-        print("="*40)
-        print(summary)
-        
-        # 1. 블로그 파일(index.html)로 저장
-        save_to_html(summary)
-        
-        # 2. 이메일 보내기 실행
-        send_email(summary)
+  news_data = get_bmw_news()
+  if not news_data:
+    print("수집된 뉴스가 없습니다.")
+  else:
+    summary = summarize_news(news_data)
+    print("\n" + "=" * 40)
+    print("✨ [BMW 뉴스 요약 결과]")
+    print("=" * 40)
+    print(summary)
+
+    # 포스팅 제목 생성 (오늘 날짜 포함)
+    today_date = datetime.now().strftime("%Y년 %m월 %d일")
+    post_title = f"🚗 BMW Daily News Briefing ({today_date})"
+
+    # 1. 기존 블로그 HTML 파일 저장 (주석 처리)
+    # save_to_html(summary)
+
+    # 2. 기존 이메일 발송 (주석 처리)
+    # send_email(summary)
+
+    # 3. 워드프레스 포스팅 실행
+    post_to_wordpress(post_title, summary)
