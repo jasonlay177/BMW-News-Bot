@@ -8,21 +8,21 @@ import requests  # 워드프레스 REST API 통신용 라이브러리
 # 1. API 키 및 설정 (GitHub Secret에서 안전하게 가져옵니다)
 api_key = os.environ.get("GEMINI_API_KEY")
 
-# 이메일 관련 변수 (현재는 주석 처리되었지만 추후 필요시 사용)
+# 이메일 관련 변수 (현재는 주석 처리됨)
 # sender_email = os.environ.get("MY_EMAIL")
 # email_password = os.environ.get("EMAIL_PASSWORD")
 # receiver_email = os.environ.get("RECEIVER_EMAIL")
 
-# 워드프레스 연동 정보 설정 (GitHub Secret에서 가져옴)
-WP_SITE_URL = os.environ.get("WP_SITE_URL")
+# 워드프레스 연동 정보 설정 (요청하신 변수명 적용)
+WP_URL = os.environ.get("WP_URL")
 WP_USER = os.environ.get("WP_USER")
-WP_PASSWORD = os.environ.get("WP_PASSWORD")
+WP_APP_PASSWORD = os.environ.get("WP_APP_PASSWORD")
 
 if not api_key:
   raise ValueError("GEMINI_API_KEY가 설정되지 않았습니다!")
 
 genai.configure(api_key=api_key)
-model = genai.GenerativeModel("gemini-3.5-flash")  # 안정적인 모델 버전으로 설정
+model = genai.GenerativeModel("gemini-3.5-flash")  # 안정적인 모델 버전
 
 
 def get_bmw_news():
@@ -41,7 +41,8 @@ def summarize_news(news_text):
   print("🤖 Gemini AI가 뉴스를 요약하는 중...")
   prompt = f"""
     다음은 최근 BMW 관련 뉴스 목록입니다. 
-    이 내용들을 바탕으로 주요 뉴스 5가지를 요약해서 워드프레스 블로그용으로 만들어주세요.
+    이 내용들을 바탕으로 주요 뉴스 5가지를 요약해서 경영진에 보고하는 형식으로 만들어주세요.
+    특수문자는 사용하지 말고 깔끔하게 번호만 붙여서. 각 뉴스당 5~6줄 정도 분량으로.
 
     [뉴스 원본]
     {news_text}
@@ -50,38 +51,38 @@ def summarize_news(news_text):
   return response.text
 
 
-# [주석 처리] 기존 GitHub Pages용 HTML 파일 생성 함수 (사용 안 함)
+# [주석 처리] 기존 GitHub Pages용 HTML 파일 생성 함수
 # def save_to_html(summary_text):
 #     ...
 
 
-# [주석 처리] 기존 이메일 발송 함수 (사용 안 함)
+# [주석 처리] 기존 이메일 발송 함수
 # def send_email(summary_text):
 #     ...
 
 
-# [신규 추가] 워드프레스 자동 포스팅 함수
+# 워드프레스 자동 포스팅 함수
 def post_to_wordpress(title, summary_text):
   print("📝 워드프레스에 포스팅을 전송하는 중...")
 
-  if not WP_SITE_URL or not WP_USER or not WP_PASSWORD:
+  if not WP_URL or not WP_USER or not WP_APP_PASSWORD:
     print("⚠️ 워드프레스 설정(Secret)이 누락되어 포스팅을 건너뜁니다.")
     return
 
-  api_url = f"{WP_SITE_URL}/wp-json/wp/v2/posts"
+  api_url = f"{WP_URL}/wp-json/wp/v2/posts"
 
   # Basic Auth 인증 헤더 생성
-  credentials = f"{WP_USER}:{WP_PASSWORD}"
+  credentials = f"{WP_USER}:{WP_APP_PASSWORD}"
   token = base64.b64encode(credentials.encode()).decode()
   headers = {
       "Authorization": f"Basic {token}",
       "Content-Type": "application/json",
   }
 
-  # 본문 줄바꿈을 HTML 태그(<br>)로 변환하여 가독성 높이기
+  # 본문 줄바꿈을 HTML 태그(<br>)로 변환
   formatted_content = summary_text.replace("\n", "<br>")
 
-  # 전송할 데이터 구조 (status를 'publish'로 하면 즉시 발행, 'draft'로 하면 임시글 저장)
+  # 전송할 데이터 구조 (status: 'publish'는 즉시 발행, 'draft'는 임시글 저장)
   data = {
       "title": title,
       "content": formatted_content,
