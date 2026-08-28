@@ -53,11 +53,17 @@ def get_bmw_news():
 
 
 def summarize_news(news_text):
-  print("🤖 Gemini AI가 뉴스를 요약하는 중...")
+  print("🤖 Gemini AI가 세련된 형식으로 뉴스를 요약하는 중...")
   prompt = f"""
     다음은 최근 BMW 관련 뉴스 목록입니다. 
-    이 내용들을 바탕으로 주요 뉴스 5가지를 요약해서 경영진에 보고하는 형식으로 만들어주세요.
-    특수문자는 사용하지 말고 깔끔하게 번호만 붙여서. 각 뉴스당 5~6줄 정도 분량으로.
+    이 내용들을 바탕으로 주요 뉴스 5가지를 경영진 보고 형식으로 요약해 주세요.
+    
+    반드시 아래의 HTML 구조와 규칙을 지켜서 작성해 주세요. (Markdown 백틱 ```html ... ``` 같은 건 쓰지 말고 순수 HTML 태그 문자열만 반환해 주세요)
+    
+    - 각 뉴스 제목은 <h3> 태그를 사용하고 앞에 🚗 아이콘을 붙여주세요.
+    - 본문 내용은 <ul>과 <li> 태그를 사용하여 3~4개의 불렛 포인트(핵심 요약)로 정리해 주세요.
+    - 중요한 기업명, 수치, 핵심 키워드는 <strong> 태그로 진하게 강조해 주세요.
+    - 전체 내용 끝에 간단한 한 줄 인사이트나 전망을 <p><i>...</i></p> 태그로 추가해 주세요.
 
     [뉴스 원본]
     {news_text}
@@ -78,11 +84,38 @@ def summarize_news(news_text):
 
 # 워드프레스 자동 포스팅 함수
 def post_to_wordpress(title, summary_text):
-  print("📝 워드프레스에 포스팅을 전송하는 중...")
+  print("📝 스타일이 적용된 포스팅을 워드프레스에 전송하는 중...")
 
   if not WP_URL or not WP_USER or not WP_APP_PASSWORD:
     print("⚠️ 워드프레스 설정(Secret)이 누락되어 포스팅을 건너뜁니다.")
     return
+
+  api_url = f"{WP_URL}/wp-json/wp/v2/posts"
+
+  # Basic Auth 인증 헤더 생성
+  credentials = f"{WP_USER}:{WP_APP_PASSWORD}"
+  token = base64.b64encode(credentials.encode()).decode()
+  headers = {
+      "Authorization": f"Basic {token}",
+      "Content-Type": "application/json",
+  }
+
+  # Gemini가 이미 HTML 태그를 포함해서 주므로 replace 없이 그대로 사용합니다!
+  data = {
+      "title": title,
+      "content": summary_text,
+      "status": "publish",
+      # "categories": [1] # 필요하다면 워드프레스의 카테고리 ID 번호를 넣을 수 있습니다.
+  }
+
+  try:
+    response = requests.post(api_url, headers=headers, json=data)
+    if response.status_code == 201:
+      print("✨ 멋지게 꾸며진 워드프레스 포스팅 완료!")
+    else:
+      print(f"❌ 포스팅 실패: {response.status_code}, {response.text}")
+  except Exception as e:
+    print(f"❌ 통신 중 오류 발생: {e}")
 
   api_url = f"{WP_URL}/wp-json/wp/v2/posts"
 
