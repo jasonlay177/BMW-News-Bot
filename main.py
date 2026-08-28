@@ -18,7 +18,7 @@ genai.configure(api_key=api_key)
 model = genai.GenerativeModel('gemini-3.6-flash')
 
 def get_bmw_news():
-    print("🚗 BMW 최신 뉴스를 수집하는 중...")
+    print(" BMW 최신 뉴스를 수집하는 중...")
     rss_url = "https://news.google.com/rss/search?q=BMW&hl=ko&gl=KR&ceid=KR:ko"
     feed = feedparser.parse(rss_url)
     
@@ -45,7 +45,7 @@ def send_email(summary_text):
     print("📧 이메일 발송 중...")
     # 메일 제목과 본문 설정
     msg = MIMEMultipart()
-    msg['Subject'] = '🚗 [자동발송] 오늘 아침 BMW 뉴스 요약'
+    msg['Subject'] = ' 오늘 아침 BMW 뉴스 요약'
     msg['From'] = sender_email
     msg['To'] = receiver_email
     
