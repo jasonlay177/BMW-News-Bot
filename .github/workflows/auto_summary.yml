@@ -2,7 +2,7 @@ name: Daily BMW News Auto Summary
 
 on:
   schedule:
-    - cron: '0 23 * * *' # 매일 UTC 기준 밤 11시 (한국 시간 아침 8시)에 실행
+    - cron: '0 2 * * *' # 매일 UTC 기준 밤 11시 (한국 시간 아침 8시)에 실행
   workflow_dispatch: # 웹에서 수동으로도 버튼을 눌러 실행할 수 있게 해주는 기능
 
 jobs:
