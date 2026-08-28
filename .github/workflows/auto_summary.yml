@@ -2,14 +2,14 @@ name: Daily BMW News Auto Summary
 
 on:
   schedule:
-    - cron: '0 2 * * *' # 매일 UTC 기준 새벽 2시 (한국 시간 오전 11시)에 실행
+    - cron: '0 23 * * *' # 매일 UTC 기준 밤 11시 (한국 시간 오전 8시)에 실행
   workflow_dispatch: # 웹에서 수동으로 실행 버튼
 
 jobs:
   run-bot:
     runs-on: ubuntu-latest
     
-    # 깃허브 저장소에 파일을 수정·커밋할 수 있는 권한 부여
+    # 깃허브 저장소에 파일을 수정·커밋할 수 있는 권한 부여 (추후 필요시 사용)
     permissions:
       contents: write
 
@@ -24,22 +24,23 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install feedparser google-generativeai
+          # requests 라이브러리 추가
+          pip install feedparser google-generativeai requests
 
       - name: Run Python script
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          MY_EMAIL: ${{ secrets.MY_EMAIL }}
-          EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
-          RECEIVER_EMAIL: ${{ secrets.RECEIVER_EMAIL }}
+          WP_URL: ${{ secrets.WP_URL }}
+          WP_USER: ${{ secrets.WP_USER }}
+          WP_APP_PASSWORD: ${{ secrets.WP_APP_PASSWORD }}
         run: |
           python main.py
 
-      # 파이썬이 생성한 index.html 파일을 깃허브 저장소에 자동으로 커밋 & 푸시
-      - name: Commit and push changes
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add index.html
-          git commit -m "Auto-update daily BMW news summary [skip ci]" || exit 0
-          git push
+      # index.html 관련 커밋/푸시는 현재 파이썬에서 주석 처리되었으므로 에러 방지를 위해 비워둡니다.
+      # - name: Commit and push changes
+      #   run: |
+      #     git config --global user.name "github-actions[bot]"
+      #     git config --global user.email "github-actions[bot]@users.noreply.github.com"
+      #     git add index.html
+      #     git commit -m "Auto-update daily BMW news summary [skip ci]" || exit 0
+      #     git push
