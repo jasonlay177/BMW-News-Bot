@@ -27,12 +27,27 @@ model = genai.GenerativeModel("gemini-3.5-flash")  # 안정적인 모델 버전
 
 def get_bmw_news():
   print("🚗 BMW 최신 뉴스를 수집하는 중...")
+  # 검색어를 조금 더 확실하게 잡힐 수 있도록 인코딩 파라미터 포함
   rss_url = "https://news.google.com/rss/search?q=BMW&hl=ko&gl=KR&ceid=KR:ko"
   feed = feedparser.parse(rss_url)
 
+  print(f"🔍 디버깅: 수집된 전체 피드 개수: {len(feed.entries)}")
+
   news_list = []
+  # 안전하게 최대 3개 혹은 전체 피드 개수만큼 가져오기
   for entry in feed.entries[:3]:
     news_list.append(f"제목: {entry.title}\n링크: {entry.link}\n")
+
+  if not news_list:
+    # 만약 위 URL에서 안 긁어와지면 대체 검색어로 한 번 더 시도할 수 있습니다.
+    print("⚠️ 기본 RSS에서 뉴스를 찾지 못해 대체 검색어로 재시도합니다.")
+    alt_url = (
+        "https://news.google.com/rss/search?q=%EB%B9%84%EC%97%84%EB%8D%94%EB%B9%"
+        "84%EC%9C%A0&hl=ko&gl=KR&ceid=KR:ko"
+    )  # '비엠더블유' 인코딩 검색
+    feed = feedparser.parse(alt_url)
+    for entry in feed.entries[:3]:
+      news_list.append(f"제목: {entry.title}\n링크: {entry.link}\n")
 
   return "\n".join(news_list)
 
