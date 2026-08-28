@@ -16,7 +16,7 @@ if not api_key:
     raise ValueError("GEMINI_API_KEY가 설정되지 않았습니다!")
 
 genai.configure(api_key=api_key)
-model = genai.GenerativeModel('gemini-1.5-flash') # 모델명을 안정적인 버전으로 수정했습니다
+model = genai.GenerativeModel('gemini-3.5-flash') # 모델명을 안정적인 버전으로 수정했습니다
 
 def get_bmw_news():
     print("🚗 BMW 최신 뉴스를 수집하는 중...")
