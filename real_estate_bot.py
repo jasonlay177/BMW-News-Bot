@@ -36,7 +36,7 @@ def get_real_estate_data():
     # 🔑 핵심: 인코딩된 키를 가져와서 파이썬으로 디코딩(Decoding)합니다!
     decoded_service_key = urllib.parse.unquote(public_api_key)
     
-params = {
+    params = {
         "serviceKey": decoded_service_key,  # 👈 디코딩된 키를 파라미터에 전달
         "LAWD_CD": lawd_cd,
         "DEAL_YMD": target_date,
@@ -113,7 +113,7 @@ def summarize_real_estate(raw_data):
       <div style="background-color: #f7fafc; padding: 15px 20px; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
         <h3 style="margin-top: 0; margin-bottom: 0; color: #2d3748;">🏠 주요 지역 아파트 실거래가 트렌드</h3>
       </div>
-         
+       
     - 본문: 수집된 거래 내역을 바탕으로 주요 단지의 시세 특징을 분석해 주세요.
       - <h3> 태그를 사용하여 주요 단지별 거래 소식을 보기 좋게 정리해 주세요.
       - 본문 내용은 <ul>과 <li> 태그를 사용하여 가격대와 면적별 특징을 핵심 요약해 주세요.
