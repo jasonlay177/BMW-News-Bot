@@ -117,36 +117,7 @@ def post_to_wordpress(title, summary_text):
   except Exception as e:
     print(f"❌ 통신 중 오류 발생: {e}")
 
-  api_url = f"{WP_URL}/wp-json/wp/v2/posts"
-
-  # Basic Auth 인증 헤더 생성
-  credentials = f"{WP_USER}:{WP_APP_PASSWORD}"
-  token = base64.b64encode(credentials.encode()).decode()
-  headers = {
-      "Authorization": f"Basic {token}",
-      "Content-Type": "application/json",
-  }
-
-  # 본문 줄바꿈을 HTML 태그(<br>)로 변환
-  formatted_content = summary_text.replace("\n", "<br>")
-
-  # 전송할 데이터 구조 (status: 'publish'는 즉시 발행, 'draft'는 임시글 저장)
-  data = {
-      "title": title,
-      "content": formatted_content,
-      "status": "publish",
-  }
-
-  try:
-    response = requests.post(api_url, headers=headers, json=data)
-    if response.status_code == 201:
-      print("✅ 성공적으로 워드프레스에 포스팅되었습니다!")
-    else:
-      print(f"❌ 워드프레스 포스팅 실패: {response.status_code}, {response.text}")
-  except Exception as e:
-    print(f"❌ 워드프레스 통신 중 오류 발생: {e}")
-
-
+ 
 if __name__ == "__main__":
   news_data = get_economic_news()  # 함수 이름 변경 반영
   if not news_data:
@@ -160,7 +131,7 @@ if __name__ == "__main__":
 
     # 포스팅 제목 생성 (오늘 날짜 포함)
     today_date = datetime.now().strftime("%Y년 %m월 %d일")
-    post_title = f"📈 오늘의 경제 트렌드 브리핑 ({today_date})"
+    post_title = f" 오늘의 경제 트렌드 브리핑 ({today_date})"
 
     # 워드프레스 포스팅 실행
     post_to_wordpress(post_title, summary)
