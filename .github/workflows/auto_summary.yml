@@ -30,13 +30,9 @@ jobs:
       - name: Run Python scripts
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          PUBLIC_API_KEY: ${{ secrets.PUBLIC_API_KEY }}
           WP_URL: ${{ secrets.WP_URL }}
           WP_USER: ${{ secrets.WP_USER }}
           WP_APP_PASSWORD: ${{ secrets.WP_APP_PASSWORD }}
         run: |
-          echo "=== 1. BMW 뉴스 포스팅 봇 실행 ==="
+          echo "=== BMW 뉴스 포스팅 봇 실행 ==="
           python main.py
-          
-          echo "=== 2. 부동산 정보 포스팅 봇 실행 ==="
-          python real_estate_bot.py
