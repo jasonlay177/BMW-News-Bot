@@ -1,6 +1,7 @@
 import base64
 from datetime import datetime, timedelta
 import os
+import urllib.parse
 import xml.etree.ElementTree as ET
 import google.generativeai as genai
 import requests
@@ -31,17 +32,25 @@ def get_real_estate_data():
 
     # 국토교통부 아파트매매 실거래가 오픈API 엔드포인트
     url = "http://apis.data.go.kr/1613000/RTMSDataSvcAptTrade/getRTMSDataSvcAptTrade"
-    params = {
-        "serviceKey": public_api_key,
+
+    # 🔑 핵심: 인코딩된 키를 가져와서 파이썬으로 디코딩(Decoding)합니다!
+    decoded_service_key = urllib.parse.unquote(public_api_key)
+    
+params = {
+        "serviceKey": decoded_service_key,  # 👈 디코딩된 키를 파라미터에 전달
         "LAWD_CD": lawd_cd,
         "DEAL_YMD": target_date,
-        "numOfRows": "10",  # 상위 10개 데이터만 샘플로 수집
+        "numOfRows": "10",
     }
 
     try:
+        # requests가 자동으로 다시 인코딩하는 것을 방지하기 위해
+        # params 대신 url에 직접 파라미터를 조합해서 보내는 방법도 안전합니다.
         response = requests.get(url, params=params)
+
         if response.status_code != 200:
             print(f"❌ 공공데이터 API 호출 실패: {response.status_code}")
+            print(f"응답 내용: {response.text}")  # 에러 원인 확인용
             return None
 
         # XML 응답 파싱
