@@ -36,5 +36,3 @@ jobs:
           echo "=== 1. BMW 뉴스 포스팅 봇 실행 ==="
           python main.py
           
-          echo "=== 2. 전기차 보조금 및 인프라 리포트 봇 실행 ==="
-          python ev_report_bot.py
